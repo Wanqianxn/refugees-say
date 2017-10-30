@@ -1,69 +1,61 @@
+<!-- Fromm https://devheart.org/examples/jquery-customizable-layout-using-drag-and-drop/1-getting-started-with-sortable-lists/index.html -->
 <!DOCTYPE html>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width">
-<style>
+<html>
+    <head>
+        <title>Refugees' Say</title>
+        <link rel="stylesheet" type="text/css" href="static/style.css" media="screen" />
+        <link rel="stylesheet" type="text/css" href="static/examples.css" media="screen" />
+    </head>
+    <body class="body">
+        <div id="center-wrapper">
+            <div id="header">
+                <h1 class="dhe-h1">Algorithm Results</h1>
+                <div class="dhe-clearer">&nbsp;</div>
+            </div>
+        </div>
 
-html,
-body {
-  height: 100%;
-  margin: 0;
-  overflow: hidden;
-}
+        <div class="boxes">
+            <div class="dhe-example-descriptione-section-content">
+                <div id="example-1-2">
+                    {% for key, value in communities.items() %}
+                        <div class="column left">
+                        <li class="unsortable-item">
+                            {% for commkey, commvalue in comminfo[key[0] + ", " + key[1]].items() %}
+                                {% if commkey == 'state'  or commkey == 'lon' %}
+                                , {{ commvalue }} <br/>
+                                {% elif commkey == 'lat' %}
+                                coordinates: {{ commvalue }}
+                                {% else %}
+                                {{ commkey }}: {{ commvalue }}
+                                {% endif %}
+                            {% endfor %}
+                        </li>
+                        <ul class="sortable-list">
+                            {% for casekey, casevalue in value.items() %}
+                                <li class="sortable-item">
+                                    {% for detailkey, detailvalue in casevalue.items() %}
+                                    {{ detailkey }}: {{ detailvalue }} <br/>
+                                    {% endfor %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        </div>
+                    {% endfor %}
+                    <div class="dhe-clearer">&nbsp;</div>
+                </div>
+            </div>
+        </div>
 
-svg {
-  position: absolute;
-}
+        <script type="text/javascript" src="static/jquery-1.4.2.min.js"></script>
+        <script type="text/javascript" src="static/jquery-ui-1.8.custom.min.js"></script>
+        <script type="text/javascript">
+            $(document).ready(function(){
+            	// Example 1.2: Sortable and connectable lists
+            	$('#example-1-2 .sortable-list').sortable({
+            		connectWith: '#example-1-2 .sortable-list'
+            	});
+            });
 
-</style>
-<body>
-<script src="//d3js.org/d3.v3.min.js"></script>
-<script>
-
-var width = self.frameElement ? 960 : innerWidth,
-    height = self.frameElement ? 500 : innerHeight;
-
-var data = d3.range(20).map(function() { return [Math.random() * width, Math.random() * height]; });
-
-var color = d3.scale.category10();
-
-var drag = d3.behavior.drag()
-    .origin(function(d) { return {x: d[0], y: d[1]}; })
-    .on("drag", dragged);
-
-d3.select("body")
-    .on("touchstart", nozoom)
-    .on("touchmove", nozoom)
-  .append("svg")
-    .attr("width", width)
-    .attr("height", height)
-  .selectAll("circle")
-    .data(data)
-  .enter().append("circle")
-    .attr("transform", function(d) { return "translate(" + d + ")"; })
-    .attr("r", 32)
-    .style("fill", function(d, i) { return color(i); })
-    .on("click", clicked)
-    .call(drag);
-
-function dragged(d) {
-  d[0] = d3.event.x, d[1] = d3.event.y;
-  if (this.nextSibling) this.parentNode.appendChild(this);
-  d3.select(this).attr("transform", "translate(" + d + ")");
-}
-
-function clicked(d, i) {
-  if (d3.event.defaultPrevented) return; // dragged
-
-  d3.select(this).transition()
-      .style("fill", "black")
-      .attr("r", 64)
-    .transition()
-      .attr("r", 32)
-      .style("fill", color(i));
-}
-
-function nozoom() {
-  d3.event.preventDefault();
-}
-
-</script>
+        </script>
+    </body>
+</html>
