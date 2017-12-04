@@ -2,15 +2,72 @@
 <!DOCTYPE html>
 <html>
     <head>
+
         <title>Refugees' Say</title>
+        <link href="https://fonts.googleapis.com/css?family=Quicksand" rel="stylesheet">
         <link rel="stylesheet" type="text/css" href="static/style.css" media="screen" />
-        <link rel="stylesheet" type="text/css" href="static/examples.css" media="screen" />
+        <link rel="shortcut icon" href="static/favicon.ico" type="static/x-icon">
+        <link rel="icon" href="static/favicon.ico" type="image/x-icon">
     </head>
     <body class="body">
         <div id="center-wrapper">
             <div id="header">
-                <h1 class="dhe-h1">Algorithm Results</h1>
-                <div class="dhe-clearer">&nbsp;</div>
+                <h1 class="dhe-h1">Refugee Case Placements</h1>
+                <h2 class="dhe-h2">Score: <span id="aggscore"></span></h2>
+                
+                <script>
+                function displayButton(x) {
+                    if(document.getElementById(x).style.display == 'inline') {
+                        document.getElementById(x).style.display = 'none';
+                    }
+                    else {
+                        document.getElementById(x).style.display = 'inline';
+                    }
+            	}
+
+                function showHideAll(ele, x) {
+                    if(document.getElementById(ele).className == "greenbutton") {
+                        document.getElementById(ele).className = "redbutton";
+                    }
+                    else if(document.getElementById(ele).className == "redbutton") {
+                        document.getElementById(ele).className = "greenbutton";
+                    }
+                    var commlist = {{ jCommList | safe | noSpace }}
+                    for (i = 0; i < commlist.length; i++) {
+                        displayButton(commlist[i] + x)
+                    }
+                }
+
+                function showHideDetails(casekey) {
+                    details = ['lang', 'sp'];
+                    for (i =0; i < details.length; i++) {
+                        detail = details[i];
+                        divid = casekey + detail;
+                        if(document.getElementById(divid).style.display == "none") {
+                            document.getElementById(divid).style.display = "";
+                        }
+                        else {
+                            document.getElementById(divid).style.display = "none";
+                        }
+                    }
+                }
+
+                function showHideAspects(commkey) {
+                    details = ['sslots', 'eslslots', 'nats', 'slang', 'clang', 'lfs', 'sps'];
+                    for (i =0; i < details.length; i++) {
+                        detail = details[i];
+                        divid = commkey + detail;
+                        if(document.getElementById(divid).style.display == "none") {
+                            document.getElementById(divid).style.display = "";
+                        }
+                        else {
+                            document.getElementById(divid).style.display = "none";
+                        }
+                    }
+                }
+
+                </script>
+
             </div>
         </div>
 
@@ -18,42 +75,114 @@
             <div class="dhe-example-descriptione-section-content">
                 <div id="example-1-2">
                     {% for key, value in communities.items() %}
-                        <div class="column left">
-                        <li class="unsortable-item">
-                            {% for commkey, commvalue in comminfo[key[0] + ", " + key[1]].items() %}
-                                {% if commkey == 'state'  or commkey == 'lon' %}
-                                , {{ commvalue }} <br/>
-                                {% elif commkey == 'lat' %}
-                                coordinates: {{ commvalue }}
-                                {% else %}
-                                {{ commkey }}: {{ commvalue }}
-                                {% endif %}
-                            {% endfor %}
-                        </li>
-                        <ul class="sortable-list">
-                            {% for casekey, casevalue in value.items() %}
-                                <li class="sortable-item">
-                                    {% for detailkey, detailvalue in casevalue.items() %}
-                                    {{ detailkey }}: {{ detailvalue }} <br/>
-                                    {% endfor %}
-                                </li>
-                            {% endfor %}
-                        </ul>
+                        
+                        <div class="column left"> 
+                            <li class="unsortable-item" onclick={{ 'showHideAspects("'|safe ~ key[0]|noSpace~ '")'|safe }} >
+                                {% for commkey, commvalue in comminfo[key[0] + ", " + key[1]].items() %}
+                                    {% if commkey == 'city' %}
+                                        <i> {{ commvalue }}</i>
+                                    {% elif commkey == 'state' %}
+                                        <i>, {{ commvalue }} </i> 
+                                    {% elif commkey == 'cap' %}
+                                        <i> ({{ commvalue }}) </i> <br />
+                                    {% else %}
+                                        <span id={{ key[0] | noSpace ~ commkey | noSpace}} style="display: none">
+                                            <div class="tooltip">
+                                                {% if commkey == 'sslots'%}
+                                                    School slots:
+                                                {% elif commkey == 'eslslots' %}
+                                                    ESL slots:
+                                                {% elif commkey == 'slang' %}
+                                                    S Lang:
+                                                {% elif commkey == 'clang' %}
+                                                    C Lang:
+                                                {% elif commkey == 'lfs' %}
+                                                    LFS:
+                                                {% elif commkey == 'sps' %}
+                                                    SPS:
+                                                {% else %}
+                                                     {{ commkey.capitalize() }}:
+                                                {% endif %}
+                                                {% if commkey != 'sslots' and commkey != 'eslslots' %}
+                                                    <span class="tooltiptext">{{commkey|toolTip}}</span>
+                                                {% endif %}
+                                            </div>
+                                             {{ commvalue }} <br/>
+                                        </span>
+                                    {% endif %}
+                                {% endfor %}
+                            </li>
+                            <ul class="sortable-list" ondrop=drop(event)>
+                                {% for casekey, casevalue in value.items() %}
+                                    <li class="sortable-item" onclick={{ 'showHideDetails("'|safe ~ casekey|noSpace~ '")'|safe }} >
+                                        <font color="#F7AF9D">
+                                        {{ casevalue['name'] }} <div class="tooltip"> ({{ casevalue['num'] }}) <span class="tooltiptext">{{ 'num'|toolTip}} </span></div> : <div class="tooltip"><span class='score'> {{ score() }} </span><span class="tooltiptext">{{ 'score'|toolTip}} </span></div><br /></font>
+
+                                        <div class="tooltip"> {{ casevalue['nat'] }} <span class="tooltiptext">{{ 'nat'|toolTip }} </span></div> <br />
+                                        {% for detailkey, detailvalue in casevalue.items() %}
+                                            {% if detailkey == 'lang' %}
+                                                <span id={{casekey|noSpace ~ detailkey|noSpace}} style="display: none">
+                                                    <div class="tooltip">{{ ', '.join(detailvalue) }}<span class="tooltiptext">{{detailkey|toolTip}}</span></div>
+                                                    <br />
+                                                </span>
+                                            {% elif detailkey == 'sp' %}
+                                                {% if detailvalue == "Y" %}
+                                                    <span id={{casekey|noSpace ~ detailkey|noSpace}} style="display: none">
+                                                        Single Parent
+                                                        <br />
+                                                    </span>
+                                                {% else %}
+                                                    <span id={{casekey|noSpace ~ detailkey|noSpace}} style="display: none">
+                                                        No Single Parent 
+                                                        <br />
+                                                    </span>
+                                                {% endif %}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </li>
+                                {% endfor %}
+                            </ul>
                         </div>
+                        
                     {% endfor %}
                     <div class="dhe-clearer">&nbsp;</div>
                 </div>
             </div>
         </div>
+        
 
         <script type="text/javascript" src="static/jquery-1.4.2.min.js"></script>
         <script type="text/javascript" src="static/jquery-ui-1.8.custom.min.js"></script>
         <script type="text/javascript">
+            // Score generator
+            function score() {
+                return Math.round(Math.random()*100)
+            };
+            function aggScore() {
+                var x = document.getElementsByClassName("score");
+                var i;
+                var total = 0;
+                var num = 0;
+                for (i = 0; i < x.length; i++) {
+                    total = total + parseInt(x[i].innerHTML);
+                    num = num + 1;
+                }
+                return parseInt(total / num);
+            };
             $(document).ready(function(){
             	// Example 1.2: Sortable and connectable lists
             	$('#example-1-2 .sortable-list').sortable({
-            		connectWith: '#example-1-2 .sortable-list'
+            		connectWith: '#example-1-2 .sortable-list',
+                    stop: function(event,ui){ 
+                        var x = document.getElementsByClassName("score");
+                        var i;
+                        for (i = 0; i < x.length; i++) {
+                            x[i].innerHTML = score();
+                        }
+                        document.getElementById('aggscore').innerHTML = aggScore();
+                    }
             	});
+                document.getElementById('aggscore').innerHTML = aggScore();
             });
 
         </script>

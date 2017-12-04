@@ -1,5 +1,6 @@
 import random
 import pandas as pd
+import numpy as np
 
 
 class MatchingAlgo:
@@ -24,12 +25,28 @@ class MatchingAlgo:
 
     # Takes refugee group's name and returns dict of relevant info.
     def refugeesInfo(self):
-        return None
+        pass
 
     # Return all refugees from a particular community in a *dict dict*.
     def dictOfRefugees(self):
-        return None
+        pass
 
+
+# Get rid of spaces in string.
+def noSpace(string):
+    words = string.strip().split()
+    all_words = ""
+    for word in words:
+        all_words = all_words + word
+    return all_words.lower()
+
+def getToolTip(key):
+    abbreviations={'cap':'Capacity', 'nats':'Nationalities supported', 'slang':'Staff languages', 'clang':'Community languages', 'lfs':'Large family support',
+                   'sps':'Single parent support', 'num':'Number in family', 'nat':'Nationality', 'lang':'Languages spoken', 'sp':'Single Parent',
+                   'score':'Community fit score'}
+    return abbreviations[key]
+
+# Randomly assigns cases to sites.
 def randomize(cases, sites):
     randDictbyName, randDictbySite = dict(), dict()
     for city in sites['city']:
@@ -44,6 +61,14 @@ def randomize(cases, sites):
 
 
 
+# Placeholder for algorithm that provides real score
+def randScore(groupName, groupComm):
+    return random.randint(0, 100)
+
+# Random score
+def randScore():
+    return random.randint(0, 100)
+
 class RandomAlgo(MatchingAlgo):
     def __init__(self, cases, sites):
         MatchingAlgo.__init__(self, cases, sites)
@@ -54,9 +79,10 @@ class RandomAlgo(MatchingAlgo):
         if refDf.empty:
             return None
         refugeesInfo = refDf.iloc[0].to_dict()
-        languages = refDf.iloc[0]['languages']
-        refugeesInfo['languages'] = languages.replace(" ", "").split(",")
-        refugeesInfo['community'] = self.randDictbyName[groupName]
+        languages = refDf.iloc[0]['lang']
+        refugeesInfo['lang'] = languages.replace(" ", "").split(",")
+        #refugeesInfo['community'] = self.randDictbyName[groupName]
+        refugeesInfo['score'] = randScore()
         return refugeesInfo
 
     def dictOfRefugees(self, city):
@@ -80,20 +106,20 @@ class CSVAlgo(MatchingAlgo):
         if refDf.empty:
             return None
         refugeesInfo = refDf.iloc[0].to_dict()
-        languages = refDf.iloc[0]['languages']
-        refugeesInfo['languages'] = languages.replace(" ", "").split(",")
-        for i in range(len(self.output.index)):
-            if self.output.iloc[i, 0] == groupName:
-                for j in range(len(self.output.columns)):
-                    if self.output.iloc[i, j] == 1:
-                        refugeesInfo['community'] = self.output.columns[j]
+        languages = refDf.iloc[0]['lang']
+        refugeesInfo['lang'] = languages.replace(" ", "").split(",")
+        #for i in range(len(self.output.index)):
+            #if self.output.iloc[i, 0] == groupName:
+                #for j in range(len(self.output.columns)):
+                    #if self.output.iloc[i, j] == 1:
+                        #refugeesInfo['community'] = self.output.columns[j]
         return refugeesInfo
 
     def dictOfRefugees(self, city):
         refD = dict()
-        for name in self.cases['name']:
-            if self.refugeesInfo(name)['community'] == city:
-                refD[name] = self.refugeesInfo(name)
+        #for name in self.cases['name']:
+            #if self.refugeesInfo(name)['community'] == city:
+                #refD[name] = self.refugeesInfo(name)
         return refD
 
 
@@ -103,15 +129,8 @@ def main():
     cases1 = pd.read_csv('data/cases.csv')
     output1 = pd.read_csv('data/output.csv')
 
-    csv = CSVAlgo(cases1, sites1, output1)
-
-    print(csv.refugeesInfo('Queen Finale Doshi-Velez'))
-    print("")
-    print(csv.communityInfo('Bismarck', 'ND'))
-    print("")
-    print(csv.dictOfCommunities())
-    print("")
-    print(csv.dictOfRefugees('Cambridge'))
+    csv = RandomAlgo(cases1, sites1)
+    print(csv.dictOfRefugees("Los Gatos"))
 
 if __name__ == '__main__':
     main()

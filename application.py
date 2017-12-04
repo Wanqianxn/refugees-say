@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import numpy as np
 import helpers
+import json
 
 
 app = Flask(__name__)
@@ -13,13 +14,13 @@ output = pd.read_csv('data/output.csv')
 
 @app.route("/")
 def index():
-  # Assign by output.csv:
+  ''' Assign by output.csv:
   csvAssignment = helpers.CSVAlgo(cases, sites, output)
   DictbySite = dict()
   for city in sites['city']:
     key = (city, sites[sites['city'] == city].iloc[0]['state'])
     DictbySite[key] = csvAssignment.dictOfRefugees(city)
-  csvCommInfo = csvAssignment.dictOfCommunities()
+  csvCommInfo = csvAssignment.dictOfCommunities()'''
 
   # Assign randomly:
   randomAssignment = helpers.RandomAlgo(cases, sites)
@@ -27,13 +28,19 @@ def index():
     randomAssignment.dictOfRefugees(city)
   randAssignmentsByCommunity = randomAssignment.randDictbySite
   randCommInfo = randomAssignment.dictOfCommunities()
+  commList = []
+  for k, v in randCommInfo.items():
+      commList.append(v['city'])
 
   # For CSV assignment: communities=DictbySite, comminfo=csvCommInfo
   # For random assignment: communities=randAssignmentsByCommunity, comminfo=randCommInfo
-  return render_template('index.html', communities=randAssignmentsByCommunity, comminfo=randCommInfo)
+  return render_template('index.html', communities=randAssignmentsByCommunity, comminfo=randCommInfo, jCommList=json.dumps(commList))
 
 
 # Run application
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
+    app.jinja_env.filters['noSpace'] = helpers.noSpace
+    app.jinja_env.filters['toolTip'] = helpers.getToolTip
+    app.jinja_env.globals.update(score=helpers.randScore)
     app.run(host='0.0.0.0', port=port, debug=False)
